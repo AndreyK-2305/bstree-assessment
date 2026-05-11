@@ -58,8 +58,7 @@ export const insert = (node, value) => {
 /**
  * Busca un valor en el árbol.
  *
- * BUG #3: Usa == en vez de ===, lo que causa coerción de tipos.
- * Buscar "5" (string) encontrará el nodo con valor 5 (number).
+ * FIX #3: Usa igualdad estricta para evitar coerción de tipos.
  *
  * @param {object|null} node
  * @param {number|string} value
@@ -68,8 +67,7 @@ export const insert = (node, value) => {
 export const search = (node, value) => {
   if (node === null) return null;
 
-  // BUG: == permite coerción: search(root, "10") === search(root, 10)
-  if (node.value == value) return node; // eslint-disable-line eqeqeq
+  if (node.value === value) return node;
 
   if (value < node.value) {
     return search(node.left, value);

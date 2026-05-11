@@ -127,9 +127,7 @@ export const postOrder = (node) => {
  * react-d3-tree espera: { name: string, children: Array }
  * Nuestra estructura interna es: { value: number, left: Node|null, right: Node|null }
  *
- * BUG #4 (sutil): Esta función ignora el hijo derecho cuando un nodo
- * tiene SOLO hijo derecho (no tiene hijo izquierdo).
- * Pruébalo insertando: 10, 15, 20 → el árbol visual se rompe.
+ * FIX #4: Agrega cada hijo existente de forma independiente.
  *
  * @param {object|null} node
  * @returns {object|null} - Nodo en formato react-d3-tree, o null
@@ -139,13 +137,12 @@ export const toD3Format = (node) => {
 
   const children = [];
 
-  // BUG: Si node.left es null pero node.right no, nunca se agrega node.right
   if (node.left !== null) {
     children.push(toD3Format(node.left));
+  }
 
-    if (node.right !== null) {
-      children.push(toD3Format(node.right));
-    }
+  if (node.right !== null) {
+    children.push(toD3Format(node.right));
   }
 
   return {

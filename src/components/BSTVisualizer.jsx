@@ -8,7 +8,7 @@
  * Usa React DevTools Profiler para encontrarlos.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Tree from "react-d3-tree";
 
 import { insert, search, inOrder, preOrder, postOrder, toD3Format, randomInt } from "../utils/bst";
@@ -17,9 +17,8 @@ import SearchBar from "./SearchBar";
 
 import styles from "./BSTVisualizer.module.css";
 
-// BUG #5 (Performance): Esta función se recrea en cada render.
-// Cuando el árbol tiene 20+ nodos, el re-render se siente lento.
-// Pista: ¿qué hook de React sirve para memoizar una función?
+// FIX #5: Este helper vive fuera del componente; useMemo evita recalcular
+// recorridos costosos cuando root y activeTraversal no han cambiado.
 const getTraversalResult = (root, type) => {
   switch (type) {
     case "inOrder":   return inOrder(root);
@@ -67,13 +66,14 @@ export default function BSTVisualizer() {
   };
 
   // ── Derived data ────────────────────────────────────────────────────────────
-  const d3Data     = root ? toD3Format(root) : null;
+  // useMemo evita transformar todo el árbol en cada render que no cambie root.
+  const d3Data = useMemo(() => (root ? toD3Format(root) : null), [root]);
 
-  // BUG #5 continúa: traversalResult se recalcula en cada render,
-  // no solo cuando root o activeTraversal cambian.
-  const traversalResult = activeTraversal
-    ? getTraversalResult(root, activeTraversal)
-    : [];
+  // useMemo evita recalcular recorridos cuando cambia otro estado de la UI.
+  const traversalResult = useMemo(
+    () => (activeTraversal ? getTraversalResult(root, activeTraversal) : []),
+    [activeTraversal, root]
+  );
 
   // ── Node Rendering ──────────────────────────────────────────────────────────
   /**
@@ -81,7 +81,7 @@ export default function BSTVisualizer() {
    * TODO: El estudiante debe modificar esto para que los nodos
    * que coincidan con `foundNode` se resalten visualmente.
    */
-  const renderCustomNode = ({ nodeDatum }) => (
+  const renderCustomNode = useCallback(({ nodeDatum }) => (
     <g>
       {/* TODO: Cambiar el color del círculo si nodeDatum.name === String(foundNode) */}
       <circle r={20} fill="#4A90D9" stroke="#fff" strokeWidth={2} />
@@ -95,7 +95,7 @@ export default function BSTVisualizer() {
         {nodeDatum.name}
       </text>
     </g>
-  );
+  ), []);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

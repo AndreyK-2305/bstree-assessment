@@ -26,16 +26,15 @@ export const createNode = (value) => ({
  * Inserta un valor en el árbol.
  * 
  * FIX #1: Los valores menores que el nodo actual se insertan a la izquierda.
- * BUG #2: No maneja el caso en que `node` es null desde el inicio
- *         (falla silenciosamente en el primer insert si el root es null).
+ * FIX #2: Si el subárbol actual está vacío, crea el nodo raíz.
  *
- * @param {object|null} node - Nodo raíz del subárbol actual
+ * @param {object|null|undefined} node - Nodo raíz del subárbol actual
  * @param {number} value - Valor a insertar
  * @returns {object} - Nuevo subárbol con el valor insertado
  */
 export const insert = (node, value) => {
-  if (node === null) {
-    return createNode(value); // ← Esto está bien, pero ¿cuándo se usa?
+  if (node === null || node === undefined) {
+    return createNode(value);
   }
 
   if (value > node.value) {

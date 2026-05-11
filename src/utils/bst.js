@@ -25,7 +25,7 @@ export const createNode = (value) => ({
 /**
  * Inserta un valor en el árbol.
  * 
- * BUG #1: Esta función siempre inserta a la derecha.
+ * FIX #1: Los valores menores que el nodo actual se insertan a la izquierda.
  * BUG #2: No maneja el caso en que `node` es null desde el inicio
  *         (falla silenciosamente en el primer insert si el root es null).
  *
@@ -38,8 +38,6 @@ export const insert = (node, value) => {
     return createNode(value); // ← Esto está bien, pero ¿cuándo se usa?
   }
 
-  // BUG: La comparación siempre va a la derecha
-  // Debería ir a la izquierda cuando value < node.value
   if (value > node.value) {
     return {
       ...node,
@@ -47,10 +45,10 @@ export const insert = (node, value) => {
     };
   }
 
-  if (value > node.value) { // ← BUG: condición duplicada e incorrecta
+  if (value < node.value) {
     return {
       ...node,
-      right: insert(node.right, value),
+      left: insert(node.left, value),
     };
   }
 

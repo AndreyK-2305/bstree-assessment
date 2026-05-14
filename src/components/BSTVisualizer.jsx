@@ -41,16 +41,17 @@ export default function BSTVisualizer() {
 
   // ── Insert ──────────────────────────────────────────────────────────────────
   const handleInsert = () => {
-    const parsed = parseInt(inputValue, 10);
+    const trimmedValue = inputValue.trim();
+    const parsed = Number(trimmedValue);
 
-    // BUG #6 (UX): Acepta NaN silenciosamente. Si el usuario escribe
-    // "abc" y presiona insertar, no pasa nada y no hay feedback.
-    // El error se traga. Debes manejar este caso y mostrar el errorMessage.
-    if (!isNaN(parsed)) {
-      setRoot((prevRoot) => insert(prevRoot, parsed));
-      setInputValue("");
-      setErrorMessage("");
+    if (trimmedValue === "" || !Number.isFinite(parsed)) {
+      setErrorMessage("Ingresa un valor numérico antes de insertar.");
+      return;
     }
+
+    setRoot((prevRoot) => insert(prevRoot, parsed));
+    setInputValue("");
+    setErrorMessage("");
   };
 
   // ── Random Insert ───────────────────────────────────────────────────────────
@@ -112,9 +113,13 @@ export default function BSTVisualizer() {
       <div className={styles.controls}>
         <div className={styles.inputGroup}>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              setErrorMessage("");
+            }}
             onKeyDown={(e) => e.key === "Enter" && handleInsert()}
             placeholder="Ingresa un número..."
             className={styles.input}
@@ -127,7 +132,11 @@ export default function BSTVisualizer() {
           </button>
         </div>
 
-        {/* TODO: Renderizar errorMessage aquí cuando exista */}
+        {errorMessage ? (
+          <p className={styles.errorMessage} role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
 
         <SearchBar
           value={searchTerm}

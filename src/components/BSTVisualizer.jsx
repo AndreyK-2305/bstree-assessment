@@ -78,24 +78,30 @@ export default function BSTVisualizer() {
   // ── Node Rendering ──────────────────────────────────────────────────────────
   /**
    * Función de render personalizada para cada nodo del árbol.
-   * TODO: El estudiante debe modificar esto para que los nodos
-   * que coincidan con `foundNode` se resalten visualmente.
    */
-  const renderCustomNode = ({ nodeDatum }) => (
-    <g>
-      {/* TODO: Cambiar el color del círculo si nodeDatum.name === String(foundNode) */}
-      <circle r={20} fill="#4A90D9" stroke="#fff" strokeWidth={2} />
-      <text
-        fill="white"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={12}
-        fontWeight="bold"
-      >
-        {nodeDatum.name}
-      </text>
-    </g>
-  );
+  const renderCustomNode = ({ nodeDatum }) => {
+    const isFoundNode = foundNode !== null && nodeDatum.name === String(foundNode);
+
+    return (
+      <g>
+        <circle
+          r={20}
+          fill={isFoundNode ? "#f59e0b" : "#4A90D9"}
+          stroke={isFoundNode ? "#fef3c7" : "#fff"}
+          strokeWidth={isFoundNode ? 3 : 2}
+        />
+        <text
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={12}
+          fontWeight="bold"
+        >
+          {nodeDatum.name}
+        </text>
+      </g>
+    );
+  };
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

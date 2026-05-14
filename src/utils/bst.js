@@ -107,8 +107,13 @@ export const inOrder = (node) => {
  * @returns {number[]}
  */
 export const preOrder = (node) => {
-  // TODO: Implementar
-  return [];
+  if (node === null) return [];
+
+  return [
+    node.value,
+    ...preOrder(node.left),
+    ...preOrder(node.right),
+  ];
 };
 
 /**

@@ -80,8 +80,10 @@ export default function BSTVisualizer() {
   // ── Node Rendering ──────────────────────────────────────────────────────────
   /**
    * Función de render personalizada para cada nodo del árbol.
+   * useCallback mantiene estable la referencia que recibe react-d3-tree y
+   * solo la actualiza cuando cambia el nodo encontrado que afecta el color.
    */
-  const renderCustomNode = ({ nodeDatum }) => {
+  const renderCustomNode = useCallback(({ nodeDatum }) => {
     const isFoundNode = foundNode !== null && nodeDatum.name === String(foundNode);
 
     return (
@@ -103,7 +105,7 @@ export default function BSTVisualizer() {
         </text>
       </g>
     );
-  };
+  }, [foundNode]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (

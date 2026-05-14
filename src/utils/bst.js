@@ -82,7 +82,6 @@ export const search = (node, value) => {
  * Recorrido In-Order (izquierda → raíz → derecha).
  * En un BST válido, produce los valores en orden ascendente.
  *
- * TODO: Implementar esta función.
  * Debe retornar un array de valores en orden in-order.
  *
  * @param {object|null} node
@@ -101,8 +100,6 @@ export const inOrder = (node) => {
 /**
  * Recorrido Pre-Order (raíz → izquierda → derecha).
  *
- * TODO: Implementar esta función.
- *
  * @param {object|null} node
  * @returns {number[]}
  */
@@ -118,8 +115,6 @@ export const preOrder = (node) => {
 
 /**
  * Recorrido Post-Order (izquierda → derecha → raíz).
- *
- * TODO: Implementar esta función.
  *
  * @param {object|null} node
  * @returns {number[]}
@@ -170,7 +165,7 @@ export const toD3Format = (node) => {
 
 /**
  * Calcula la altura del árbol.
- * TODO: Implementar. Útil para validar que el BST está balanceado.
+ * Un árbol vacío tiene altura 0; un árbol con solo raíz tiene altura 1.
  *
  * @param {object|null} node
  * @returns {number}

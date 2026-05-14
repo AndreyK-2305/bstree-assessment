@@ -8,7 +8,7 @@
  * Usa React DevTools Profiler para encontrarlos.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Tree from "react-d3-tree";
 
 import { insert, search, inOrder, preOrder, postOrder, toD3Format, randomInt } from "../utils/bst";
@@ -17,9 +17,7 @@ import SearchBar from "./SearchBar";
 
 import styles from "./BSTVisualizer.module.css";
 
-// BUG #5 (Performance): Esta función se recrea en cada render.
-// Cuando el árbol tiene 20+ nodos, el re-render se siente lento.
-// Pista: ¿qué hook de React sirve para memoizar una función?
+// Helper puro para seleccionar el recorrido activo.
 const getTraversalResult = (root, type) => {
   switch (type) {
     case "inOrder":   return inOrder(root);
@@ -68,13 +66,16 @@ export default function BSTVisualizer() {
   };
 
   // ── Derived data ────────────────────────────────────────────────────────────
-  const d3Data     = root ? toD3Format(root) : null;
+  // useMemo evita reconstruir el formato de react-d3-tree cuando solo cambia
+  // estado de UI como inputValue, searchTerm o errorMessage.
+  const d3Data = useMemo(() => (root ? toD3Format(root) : null), [root]);
 
-  // BUG #5 continúa: traversalResult se recalcula en cada render,
-  // no solo cuando root o activeTraversal cambian.
-  const traversalResult = activeTraversal
-    ? getTraversalResult(root, activeTraversal)
-    : [];
+  // useMemo evita recalcular recorridos completos salvo que cambie el árbol
+  // o el tipo de recorrido seleccionado.
+  const traversalResult = useMemo(
+    () => (activeTraversal ? getTraversalResult(root, activeTraversal) : []),
+    [activeTraversal, root]
+  );
 
   // ── Node Rendering ──────────────────────────────────────────────────────────
   /**

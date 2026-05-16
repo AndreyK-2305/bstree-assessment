@@ -8,7 +8,7 @@
  * Usa React DevTools Profiler para encontrarlos.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Tree from "react-d3-tree";
 
 import { insert, search, inOrder, preOrder, postOrder, toD3Format, randomInt } from "../utils/bst";
@@ -17,9 +17,7 @@ import SearchBar from "./SearchBar";
 
 import styles from "./BSTVisualizer.module.css";
 
-// BUG #5 (Performance): Esta función se recrea en cada render.
-// Cuando el árbol tiene 20+ nodos, el re-render se siente lento.
-// Pista: ¿qué hook de React sirve para memoizar una función?
+// Helper puro para seleccionar el recorrido activo.
 const getTraversalResult = (root, type) => {
   switch (type) {
     case "inOrder":   return inOrder(root);
@@ -41,16 +39,17 @@ export default function BSTVisualizer() {
 
   // ── Insert ──────────────────────────────────────────────────────────────────
   const handleInsert = () => {
-    const parsed = parseInt(inputValue, 10);
+    const trimmedValue = inputValue.trim();
+    const parsed = Number(trimmedValue);
 
-    // BUG #6 (UX): Acepta NaN silenciosamente. Si el usuario escribe
-    // "abc" y presiona insertar, no pasa nada y no hay feedback.
-    // El error se traga. Debes manejar este caso y mostrar el errorMessage.
-    if (!isNaN(parsed)) {
-      setRoot((prevRoot) => insert(prevRoot, parsed));
-      setInputValue("");
-      setErrorMessage("");
+    if (trimmedValue === "" || !Number.isFinite(parsed)) {
+      setErrorMessage("Ingresa un valor numérico antes de insertar.");
+      return;
     }
+
+    setRoot((prevRoot) => insert(prevRoot, parsed));
+    setInputValue("");
+    setErrorMessage("");
   };
 
   // ── Random Insert ───────────────────────────────────────────────────────────
@@ -67,35 +66,46 @@ export default function BSTVisualizer() {
   };
 
   // ── Derived data ────────────────────────────────────────────────────────────
-  const d3Data     = root ? toD3Format(root) : null;
+  // useMemo evita reconstruir el formato de react-d3-tree cuando solo cambia
+  // estado de UI como inputValue, searchTerm o errorMessage.
+  const d3Data = useMemo(() => (root ? toD3Format(root) : null), [root]);
 
-  // BUG #5 continúa: traversalResult se recalcula en cada render,
-  // no solo cuando root o activeTraversal cambian.
-  const traversalResult = activeTraversal
-    ? getTraversalResult(root, activeTraversal)
-    : [];
+  // useMemo evita recalcular recorridos completos salvo que cambie el árbol
+  // o el tipo de recorrido seleccionado.
+  const traversalResult = useMemo(
+    () => (activeTraversal ? getTraversalResult(root, activeTraversal) : []),
+    [activeTraversal, root]
+  );
 
   // ── Node Rendering ──────────────────────────────────────────────────────────
   /**
    * Función de render personalizada para cada nodo del árbol.
-   * TODO: El estudiante debe modificar esto para que los nodos
-   * que coincidan con `foundNode` se resalten visualmente.
+   * useCallback mantiene estable la referencia que recibe react-d3-tree y
+   * solo la actualiza cuando cambia el nodo encontrado que afecta el color.
    */
-  const renderCustomNode = ({ nodeDatum }) => (
-    <g>
-      {/* TODO: Cambiar el color del círculo si nodeDatum.name === String(foundNode) */}
-      <circle r={20} fill="#4A90D9" stroke="#fff" strokeWidth={2} />
-      <text
-        fill="white"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize={12}
-        fontWeight="bold"
-      >
-        {nodeDatum.name}
-      </text>
-    </g>
-  );
+  const renderCustomNode = useCallback(({ nodeDatum }) => {
+    const isFoundNode = foundNode !== null && nodeDatum.name === String(foundNode);
+
+    return (
+      <g>
+        <circle
+          r={20}
+          fill={isFoundNode ? "#f59e0b" : "#4A90D9"}
+          stroke={isFoundNode ? "#fef3c7" : "#fff"}
+          strokeWidth={isFoundNode ? 3 : 2}
+        />
+        <text
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={12}
+          fontWeight="bold"
+        >
+          {nodeDatum.name}
+        </text>
+      </g>
+    );
+  }, [foundNode]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -106,9 +116,13 @@ export default function BSTVisualizer() {
       <div className={styles.controls}>
         <div className={styles.inputGroup}>
           <input
-            type="number"
+            type="text"
+            inputMode="numeric"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              setErrorMessage("");
+            }}
             onKeyDown={(e) => e.key === "Enter" && handleInsert()}
             placeholder="Ingresa un número..."
             className={styles.input}
@@ -121,7 +135,11 @@ export default function BSTVisualizer() {
           </button>
         </div>
 
-        {/* TODO: Renderizar errorMessage aquí cuando exista */}
+        {errorMessage ? (
+          <p className={styles.errorMessage} role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
 
         <SearchBar
           value={searchTerm}

@@ -25,21 +25,18 @@ export const createNode = (value) => ({
 /**
  * Inserta un valor en el árbol.
  * 
- * BUG #1: Esta función siempre inserta a la derecha.
- * BUG #2: No maneja el caso en que `node` es null desde el inicio
- *         (falla silenciosamente en el primer insert si el root es null).
+ * FIX #1: Los valores menores que el nodo actual se insertan a la izquierda.
+ * FIX #2: Si el subárbol actual está vacío, crea el nodo raíz.
  *
- * @param {object|null} node - Nodo raíz del subárbol actual
+ * @param {object|null|undefined} node - Nodo raíz del subárbol actual
  * @param {number} value - Valor a insertar
  * @returns {object} - Nuevo subárbol con el valor insertado
  */
 export const insert = (node, value) => {
-  if (node === null) {
-    return createNode(value); // ← Esto está bien, pero ¿cuándo se usa?
+  if (node === null || node === undefined) {
+    return createNode(value);
   }
 
-  // BUG: La comparación siempre va a la derecha
-  // Debería ir a la izquierda cuando value < node.value
   if (value > node.value) {
     return {
       ...node,
@@ -47,10 +44,10 @@ export const insert = (node, value) => {
     };
   }
 
-  if (value > node.value) { // ← BUG: condición duplicada e incorrecta
+  if (value < node.value) {
     return {
       ...node,
-      right: insert(node.right, value),
+      left: insert(node.left, value),
     };
   }
 
@@ -61,8 +58,7 @@ export const insert = (node, value) => {
 /**
  * Busca un valor en el árbol.
  *
- * BUG #3: Usa == en vez de ===, lo que causa coerción de tipos.
- * Buscar "5" (string) encontrará el nodo con valor 5 (number).
+ * FIX #3: Usa igualdad estricta para evitar coerción de tipos.
  *
  * @param {object|null} node
  * @param {number|string} value
@@ -71,8 +67,7 @@ export const insert = (node, value) => {
 export const search = (node, value) => {
   if (node === null) return null;
 
-  // BUG: == permite coerción: search(root, "10") === search(root, 10)
-  if (node.value == value) return node; // eslint-disable-line eqeqeq
+  if (node.value === value) return node;
 
   if (value < node.value) {
     return search(node.left, value);
@@ -87,41 +82,51 @@ export const search = (node, value) => {
  * Recorrido In-Order (izquierda → raíz → derecha).
  * En un BST válido, produce los valores en orden ascendente.
  *
- * TODO: Implementar esta función.
  * Debe retornar un array de valores en orden in-order.
  *
  * @param {object|null} node
  * @returns {number[]}
  */
 export const inOrder = (node) => {
-  // TODO: Implementar
-  return [];
+  if (node === null) return [];
+
+  return [
+    ...inOrder(node.left),
+    node.value,
+    ...inOrder(node.right),
+  ];
 };
 
 /**
  * Recorrido Pre-Order (raíz → izquierda → derecha).
  *
- * TODO: Implementar esta función.
- *
  * @param {object|null} node
  * @returns {number[]}
  */
 export const preOrder = (node) => {
-  // TODO: Implementar
-  return [];
+  if (node === null) return [];
+
+  return [
+    node.value,
+    ...preOrder(node.left),
+    ...preOrder(node.right),
+  ];
 };
 
 /**
  * Recorrido Post-Order (izquierda → derecha → raíz).
  *
- * TODO: Implementar esta función.
- *
  * @param {object|null} node
  * @returns {number[]}
  */
 export const postOrder = (node) => {
-  // TODO: Implementar
-  return [];
+  if (node === null) return [];
+
+  return [
+    ...postOrder(node.left),
+    ...postOrder(node.right),
+    node.value,
+  ];
 };
 
 // ─── Tree Transformation ─────────────────────────────────────────────────────
@@ -132,9 +137,7 @@ export const postOrder = (node) => {
  * react-d3-tree espera: { name: string, children: Array }
  * Nuestra estructura interna es: { value: number, left: Node|null, right: Node|null }
  *
- * BUG #4 (sutil): Esta función ignora el hijo derecho cuando un nodo
- * tiene SOLO hijo derecho (no tiene hijo izquierdo).
- * Pruébalo insertando: 10, 15, 20 → el árbol visual se rompe.
+ * FIX #4: Agrega cada hijo existente de forma independiente.
  *
  * @param {object|null} node
  * @returns {object|null} - Nodo en formato react-d3-tree, o null
@@ -144,13 +147,12 @@ export const toD3Format = (node) => {
 
   const children = [];
 
-  // BUG: Si node.left es null pero node.right no, nunca se agrega node.right
   if (node.left !== null) {
     children.push(toD3Format(node.left));
+  }
 
-    if (node.right !== null) {
-      children.push(toD3Format(node.right));
-    }
+  if (node.right !== null) {
+    children.push(toD3Format(node.right));
   }
 
   return {
@@ -163,14 +165,15 @@ export const toD3Format = (node) => {
 
 /**
  * Calcula la altura del árbol.
- * TODO: Implementar. Útil para validar que el BST está balanceado.
+ * Un árbol vacío tiene altura 0; un árbol con solo raíz tiene altura 1.
  *
  * @param {object|null} node
  * @returns {number}
  */
 export const getHeight = (node) => {
-  // TODO: Implementar
-  return 0;
+  if (node === null) return 0;
+
+  return 1 + Math.max(getHeight(node.left), getHeight(node.right));
 };
 
 /**

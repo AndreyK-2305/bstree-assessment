@@ -82,3 +82,9 @@
   border-radius: 8px;
   padding: 8px 10px;
 }
+
+.heightResult {
+  margin: 0;
+  color: #bfdbfe;
+  font-weight: 600;
+}

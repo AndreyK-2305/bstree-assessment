@@ -11,7 +11,7 @@
 import { useState, useCallback, useMemo } from "react";
 import Tree from "react-d3-tree";
 
-import { insert, search, inOrder, preOrder, postOrder, toD3Format, randomInt } from "../utils/bst";
+import { insert, search, inOrder, preOrder, postOrder, getHeight, toD3Format, randomInt } from "../utils/bst";
 import TraversalPanel from "./TraversalPanel";
 import SearchBar from "./SearchBar";
 
@@ -36,6 +36,7 @@ export default function BSTVisualizer() {
   const [searchTerm, setSearchTerm]       = useState("");
   const [foundNode, setFoundNode]         = useState(null);
   const [errorMessage, setErrorMessage]   = useState("");
+  const [treeHeight, setTreeHeight]       = useState(null);
 
   // ── Insert ──────────────────────────────────────────────────────────────────
   const handleInsert = () => {
@@ -50,12 +51,14 @@ export default function BSTVisualizer() {
     setRoot((prevRoot) => insert(prevRoot, parsed));
     setInputValue("");
     setErrorMessage("");
+    setTreeHeight(null);
   };
 
   // ── Random Insert ───────────────────────────────────────────────────────────
   const handleRandomInsert = () => {
     const value = randomInt(1, 99);
     setRoot((prevRoot) => insert(prevRoot, value));
+    setTreeHeight(null);
   };
 
   // ── Search ──────────────────────────────────────────────────────────────────
@@ -63,6 +66,11 @@ export default function BSTVisualizer() {
     const parsed = parseInt(searchTerm, 10);
     const result = search(root, parsed);
     setFoundNode(result ? result.value : null);
+  };
+
+  // ── Height ─────────────────────────────────────────────────────────────────
+  const handleCalculateHeight = () => {
+    setTreeHeight(getHeight(root));
   };
 
   // ── Derived data ────────────────────────────────────────────────────────────
@@ -139,12 +147,19 @@ export default function BSTVisualizer() {
           <button onClick={handleRandomInsert} className={`${styles.button} ${styles.secondary}`}>
             🎲 Aleatorio
           </button>
+          <button onClick={handleCalculateHeight} className={`${styles.button} ${styles.secondary}`}>
+            Calcular altura
+          </button>
         </div>
 
         {errorMessage ? (
           <p className={styles.errorMessage} role="alert">
             {errorMessage}
           </p>
+        ) : null}
+
+        {treeHeight !== null ? (
+          <p className={styles.heightResult}>Altura del árbol: {treeHeight}</p>
         ) : null}
 
         <SearchBar

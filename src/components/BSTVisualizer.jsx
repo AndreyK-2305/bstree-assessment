@@ -85,6 +85,7 @@ export default function BSTVisualizer() {
    */
   const renderCustomNode = useCallback(({ nodeDatum }) => {
     const isFoundNode = foundNode !== null && nodeDatum.name === String(foundNode);
+    const fontSize = nodeDatum.name.length > 2 ? 11 : 14;
 
     return (
       <g>
@@ -97,9 +98,14 @@ export default function BSTVisualizer() {
         <text
           fill="white"
           textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={12}
-          fontWeight="bold"
+          dominantBaseline="middle"
+          fontFamily="Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+          fontSize={fontSize}
+          fontWeight={700}
+          letterSpacing="0"
+          paintOrder="stroke"
+          stroke="#0f172a"
+          strokeWidth={0.75}
         >
           {nodeDatum.name}
         </text>
